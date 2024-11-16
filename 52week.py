@@ -1,282 +1,257 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import os
 
-# Global variable to define monthly transaction plan for "Hold" strategy
-plan = 1  # Number of shares to buy (positive) or sell (negative) monthly
 
-# Global variables to control the trading strategy
-sell_high = True  # Defines if we sell when reaching above 52-week high
-buy_low = True    # Defines if we buy when reaching below 52-week low
-sell_amount = 5  # Number of shares to sell when conditions are met
-buy_amount = 10   # Number of shares to buy when conditions are met
+class TradingStrategySimulator:
+    def __init__(self, initial_shares, start_date, period_months, plan, params):
+        """Initialize the simulator with initial parameters."""
+        self.initial_shares = initial_shares
+        self.start_date = pd.to_datetime(start_date)
+        self.end_date = self.start_date + pd.DateOffset(months=period_months)
+        self.plan = plan
+        self.params = params
+        self.start_price = 0
 
-relative_transaction = True
-relative_sell = 10
-relative_buy = 50
-cash_interest = 0.12/252 # Assume that free money can generate up to 12% elsewhere
-tax_rate = 0.8 # 20% tax on capital gains
+    def load_data(self, filename):
+        """Load a CSV file and prepare it for simulation."""
+        filepath = os.path.join("history", filename)
+        print(f"Loading file: {filepath}")
+        try:
+            data = pd.read_csv(filepath)
+            data['Date'] = pd.to_datetime(data['Date'])
+            data = data.sort_values(by='Date').reset_index(drop=True)
+            return data
+        except FileNotFoundError:
+            print(f"Error: {filename} not found.")
+            return None
 
-# Initialize portfolio simulation
-initial_shares = 100
-start_date = pd.to_datetime('2018-01-03')
+    def validate_date(self, meta_data):
+        # Ensure meta_data['Date'] is in datetime format
+        meta_data['Date'] = pd.to_datetime(meta_data['Date'])
 
+        # Update start_date if the first date in meta_data['Date'] is later
+        first_date_in_meta = meta_data['Date'].iloc[0]  # First date in meta_data
 
-
-# Define a function to load "Meta_Dataset.csv" from the disk
-def load_meta_dataset(filename):
-    """
-    Load the Meta historical dataset from the same directory as the script.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the historical data from "Meta_Dataset.csv".
-    """
-    filepath = os.path.join("history/", filename )
-    print("Loading file:", filepath)
-    try:
-        # Attempt to load the dataset
-        dataset = pd.read_csv(filepath)
-        # Convert the 'Date' column to datetime format
-        dataset['Date'] = pd.to_datetime(dataset['Date'])
-        # Sort the dataset by the 'Date' column in ascending order
-        dataset = dataset.sort_values(by='Date', ascending=True).reset_index(drop=True)
-
-        return dataset
-    except FileNotFoundError:
-        print("Error: ' " + filename + ".csv' not found in the script's directory.")
-        return None
-    except Exception as e:
-        print(f"An error occurred while loading the dataset: {e}")
-        return None
+        if first_date_in_meta > self.start_date:
+            self.start_date = first_date_in_meta
+            self.end_date = self.start_date + pd.DateOffset(months=period_months)
+            print(f"## Updated start_date to {self.start_date}")
 
 
+    def apply_strategy(self, meta_data):
+        """Apply the trading strategy."""
+        portfolio = {'cash': -self.initial_shares * self.start_price,
+                     'shares': self.initial_shares, 'transactions': []}
+        outside_range = False
+        last_transaction_month = None
 
-def apply_monthly_plan(meta_data, initial_shares, plan):
-    """
-    Adjust the "Hold" portfolio based on the monthly plan.
-    Buys or sells the defined number of shares on the 15th of each month.
+        for idx, row in meta_data.iterrows():
+            current_month = row['Date'].month
+            current_year = row['Date'].year
 
-    Args:
-        meta_data (pd.DataFrame): The stock data.
-        initial_shares (int): Initial number of shares in the portfolio.
-        plan (int): Number of shares to buy (positive) or sell (negative) monthly.
+            if not outside_range and (last_transaction_month != (current_year, current_month)):
+                if self.params['sell_high'] and row['High'] > row['52_Week_High']:
+                    sell_amount = portfolio['shares'] * self.params['relative_sell'] / 100
+                    portfolio['cash'] += sell_amount * row['High']
+                    portfolio['shares'] -= sell_amount
+                    outside_range = True
+                    last_transaction_month = (current_year, current_month)
+                elif self.params['buy_low'] and row['Low'] < row['52_Week_Low']:
+                    buy_amount = portfolio['shares'] * self.params['relative_buy'] / 100
+                    portfolio['cash'] -= buy_amount * row['Low']
+                    portfolio['shares'] += buy_amount
+                    outside_range = True
+                    last_transaction_month = (current_year, current_month)
 
-    Returns:
-        dict: Final portfolio value and transactions.
-    """
-    portfolio = {'cash': initial_shares * start_price*-1, 'shares': initial_shares, 'transactions': []}
-    for idx, row in meta_data.iterrows():
-        if row['Date'].day == 15:  # Execute the plan on the 15th of each month
-            if plan < 0 and portfolio['shares'] >= abs(plan):  # Sell shares
-                portfolio['cash'] += abs(plan) * row['Close']
-                portfolio['shares'] += plan  # Subtract from shares
-                portfolio['transactions'].append({'Date': row['Date'], 'Action': 'Sell', 'Price': row['Close'], 'Amount': abs(plan)})
-            elif plan > 0:  # Buy shares
-                portfolio['cash'] -= plan * row['Close']
-                portfolio['shares'] += plan  # Add to shares
-                portfolio['transactions'].append({'Date': row['Date'], 'Action': 'Buy', 'Price': row['Close'], 'Amount': plan})
-        meta_data.loc[idx, 'Cash_M'] = portfolio['cash']
-        meta_data.loc[idx, 'Portfolio_M'] = portfolio['shares']
-        portfolio['cash'] = portfolio['cash'] + portfolio['cash']*cash_interest
-    # Calculate the final value of the portfolio
-    final_closing_price = meta_data.iloc[-1]['Close']
-    portfolio_value = portfolio['cash'] + portfolio['shares'] * final_closing_price
-    return {
-        'Final Portfolio Value': portfolio_value,
-        'Transactions': portfolio['transactions']
-    }
-
-def apply_hold_interest(meta_data):
-    """
-
-    """
-    portfolio = {'cash': initial_shares * start_price*-1, 'shares': initial_shares, 'transactions': []}
-    for idx, row in meta_data.iterrows():
-
-        meta_data.loc[idx, 'Cash_H'] = portfolio['cash']
-        portfolio['cash'] = portfolio['cash'] + portfolio['cash']*cash_interest
-
-
-
-def apply_strategy(meta_data):
-    """
-    Apply strategic plan
-
-    """
-    # Simulate the trading strategy
-    outside_range = False  # Flag to track if we're waiting for the price to return inside the range
-
-    # Initialize a variable to track the last transaction month
-    last_transaction_month = None
-
-    for idx, row in meta_data.iterrows():
-        current_month = row['Date'].month
-        current_year = row['Date'].year
-
-        if not outside_range and (last_transaction_month != (current_year, current_month)):
-            if sell_high and row['High'] > row['52_Week_High'] and portfolio['shares'] >= sell_amount:
-                # Sell 'sell_amount' shares at the day's high
-                if relative_transaction:
-                    sell_amount = portfolio['shares'] * relative_sell / 100
-                portfolio['cash'] += sell_amount * row['High'] * tax_rate
-                portfolio['shares'] -= sell_amount
-                portfolio['transactions'].append({'Date': row['Date'], 'Action': 'Sell', 'Price': row['High'], 'Amount': sell_amount})
-                outside_range = True
-                last_transaction_month = (current_year, current_month)
-            elif buy_low and row['Low'] < row['52_Week_Low']:
-                # Buy 'buy_amount' shares at the day's low
-                if relative_transaction:
-                    buy_amount = portfolio['shares'] * relative_buy / 100
-                portfolio['cash'] -= buy_amount * row['Low']
-                portfolio['shares'] += buy_amount
-                portfolio['transactions'].append({'Date': row['Date'], 'Action': 'Buy', 'Price': row['Low'], 'Amount': buy_amount})
-                outside_range = True
-                last_transaction_month = (current_year, current_month)
-
-        else:
-            # Reset the flag once the price moves back into the range
             if row['52_Week_Low'] <= row['Low'] <= row['High'] <= row['52_Week_High']:
                 outside_range = False
 
-        # Update the portfolio and cash data in meta_data
-        meta_data.loc[idx, 'Cash_S'] = portfolio['cash']
-        meta_data.loc[idx, 'Portfolio_S'] = portfolio['shares']
+            meta_data.loc[idx, 'Cash_S'] = portfolio['cash']
+            meta_data.loc[idx, 'Portfolio_S'] = portfolio['shares']
 
-        # Apply cash interest to the portfolio's cash
-        portfolio['cash'] = portfolio['cash'] + portfolio['cash'] * cash_interest
+    def apply_monthly_plan(self, meta_data):
+        """Apply a monthly buy/sell plan."""
+        portfolio = {'cash': -self.initial_shares * self.start_price,
+                     'shares': self.initial_shares, 'transactions': []}
 
+        for idx, row in meta_data.iterrows():
+            if row['Date'].day == 15:
+                if self.plan < 0 and portfolio['shares'] >= abs(self.plan):
+                    portfolio['cash'] += abs(self.plan) * row['Close']
+                    portfolio['shares'] += self.plan
+                elif self.plan > 0:
+                    portfolio['cash'] -= self.plan * row['Close']
+                    portfolio['shares'] += self.plan
+            meta_data.loc[idx, 'Cash_M'] = portfolio['cash']
+            meta_data.loc[idx, 'Portfolio_M'] = portfolio['shares']
+            portfolio['cash'] = portfolio['cash'] + portfolio['cash']*self.params['cash_interest']
 
-def calculate_output(meta_data):
-    # Calculate the final portfolio value
-    final_closing_price = meta_data.iloc[-1]['Close']
-    # Integrate the monthly adjustment for the "Hold" approach
-    hold_monthly_results = apply_monthly_plan(meta_data, initial_shares, plan)
-    apply_hold_interest(meta_data)
-
-    portfolio_value_hold = meta_data.iloc[-1]['Portfolio_H'] * final_closing_price
-    portfolio_value_monthly = meta_data.iloc[-1]['Portfolio_M'] * final_closing_price
-    portfolio_value_strategy = meta_data.iloc[-1]['Portfolio_S'] * final_closing_price
-
-    cash_hold = meta_data.iloc[-1]['Cash_H']
-    cash_monthly = meta_data.iloc[-1]['Cash_M']
-    cash_strategy = meta_data.iloc[-1]['Cash_S']
-
-
-    # Calculate returns
-    return_hold = (portfolio_value_hold + cash_hold) / (initial_shares*start_price)*100
-    return_monthly = (portfolio_value_monthly + cash_monthly) / (initial_shares*start_price)*100
-    return_strategy = (portfolio_value_strategy + cash_strategy) / (initial_shares*start_price)*100
-
-def print_data(meta_data):
-    print("Final Portfolio Results:")
-
-    print(f"Initial Investment: ${initial_shares*start_price:,.0f}")
-    print(f"Final Portfolio Value (Hold): ${portfolio_value_hold:,.0f} (Cash: ${cash_hold:.0f})")
-    print(f"Final Portfolio Value (Monthly): ${portfolio_value_monthly:,.0f} (Cash: ${cash_monthly:.0f})")
-    print(f"Final Portfolio Value (Strategy): ${portfolio_value_strategy:,.0f} (Cash: ${cash_strategy:.0f})")
-
-    print(f"Return (%) (Hold): {return_hold:.2f}%")
-    print(f"Return (%) (Monthly): {return_monthly:.2f}%")
-    print(f"Return (%) (Strategy): {return_strategy:.2f}%")
-
-    print(f"Cash Gain (Hold): {portfolio_value_hold + cash_hold:,.0f}")
-    print(f"Cash Gain (Monthly): {portfolio_value_monthly + cash_monthly:,.0f}")
-    print(f"Cash Gain (Strategy): {portfolio_value_strategy + cash_strategy:,.0f}")
-
-
-def draw_plots(meta_data):
-    import matplotlib.pyplot as plt
-    # Calculate Total Values
-    meta_data['Total_Value_H'] = meta_data['Cash_H'] + meta_data['Portfolio_H'] * meta_data['Close']
-    meta_data['Total_Value_M'] = meta_data['Cash_M'] + meta_data['Portfolio_M'] * meta_data['Close']
-    meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
-
-    # Plot Cash
-    plt.figure(figsize=(12, 6))
-    plt.plot(meta_data['Date'], meta_data['Cash_H'], label='Cash_H')
-    plt.plot(meta_data['Date'], meta_data['Cash_M'], label='Cash_M')
-    plt.plot(meta_data['Date'], meta_data['Cash_S'], label='Cash_S')
-    plt.title('Cash Over Time')
-    plt.xlabel('Date')
-    plt.ylabel('Cash ($)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-    # Plot Total Value
-    plt.figure(figsize=(12, 6))
-    plt.plot(meta_data['Date'], meta_data['Total_Value_H'], label='Total Value H')
-    plt.plot(meta_data['Date'], meta_data['Total_Value_M'], label='Total Value M')
-    plt.plot(meta_data['Date'], meta_data['Total_Value_S'], label='Total Value S')
-    plt.title('Total Value Over Time')
-    plt.xlabel('Date')
-    plt.ylabel('Total Value ($)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        # Calculate the final value of the portfolio
+        final_closing_price = meta_data.iloc[-1]['Close']
+        portfolio_value = portfolio['cash'] + portfolio['shares'] * final_closing_price
+        return {
+            'Final Portfolio Value': portfolio_value,
+            'Transactions': portfolio['transactions']
+        }
 
 
 
 
-file_list = ["AAPL-history.csv",
-"DIS-history.csv",
-"DUOL-history.csv",
-"GOOG-history.csv",
-"MSFT-history.csv",
-"NKE-history.csv",
-"NVDA-history.csv",
-"RDDT-history.csv",
-"TSLA-history.csv",]
+    def apply_hold_interest(self, meta_data):
+        """
 
-for filename in file_list:
+        """
+        portfolio = {'cash': self.initial_shares * self.start_price*-1, 'shares': self.initial_shares, 'transactions': []}
+        for idx, row in meta_data.iterrows():
 
+            meta_data.loc[idx, 'Cash_H'] = portfolio['cash']
+            portfolio['cash'] = portfolio['cash'] + portfolio['cash']*self.params['cash_interest']
+        return meta_data
 
-    # Example usage
-    # Uncomment the following line to load the dataset:
-    meta_data = load_meta_dataset(filename)
-    # Convert the 'Date' column to datetime for easier filtering
-    meta_data['Date'] = pd.to_datetime(meta_data['Date'])
-
-    # Initialize the Cash and Portfolio columns in meta_data
-    if start_date in meta_data['Date'].values:
-        start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
-    else:
-        print(f"Start date {start_date} not found in meta_data.")
-        exit()
+    def calculate_metrics(self, meta_data):
+        """Calculate portfolio metrics like returns and final value."""
+        # Calculate the final portfolio value
 
 
-    meta_data['Cash_H'] = initial_shares * start_price *-1
-    meta_data['Portfolio_H'] = initial_shares
-    meta_data['Cash_M'] = initial_shares * start_price *-1
-    meta_data['Portfolio_M'] = initial_shares
-    meta_data['Cash_S'] = initial_shares * start_price *-1
-    meta_data['Portfolio_S'] = initial_shares
+        metrics_dict = {}
+        metrics_dict["final_closing_price"] = meta_data.iloc[-1]['Close']
+        metrics_dict["initial_invest"] = self.initial_shares*self.start_price
+
+        metrics_dict["portfolio_value_hold"] = meta_data.iloc[-1]['Portfolio_H'] * metrics_dict["final_closing_price"]
+        metrics_dict["portfolio_value_monthly"] = meta_data.iloc[-1]['Portfolio_M'] * metrics_dict["final_closing_price"]
+        metrics_dict["portfolio_value_strategy"] = meta_data.iloc[-1]['Portfolio_S'] * metrics_dict["final_closing_price"]
+
+        metrics_dict["cash_hold"] = meta_data.iloc[-1]['Cash_H']
+        metrics_dict["cash_monthly"] = meta_data.iloc[-1]['Cash_M']
+        metrics_dict["cash_strategy"] = meta_data.iloc[-1]['Cash_S']
 
 
-    # Filter data starting from start_date
-    meta_data = meta_data[meta_data['Date'] >= start_date].reset_index(drop=True)
+        # Calculate returns
+        metrics_dict['return_hold'] = (metrics_dict['portfolio_value_hold'] + metrics_dict['cash_hold']) / (self.initial_shares*self.start_price)*100
+        metrics_dict['return_monthly'] = (metrics_dict['portfolio_value_monthly'] + metrics_dict['cash_monthly']) / (self.initial_shares*self.start_price)*100
+        metrics_dict['return_strategy'] = (metrics_dict['portfolio_value_strategy'] + metrics_dict['cash_strategy']) / (self.initial_shares*self.start_price)*100
 
-    # Calculate rolling 52-week high and low for the *previous day*
-    meta_data['52_Week_High'] = meta_data['High'].shift(1).rolling(window=260, min_periods=1).max()
-    meta_data['52_Week_Low'] = meta_data['Low'].shift(1).rolling(window=260, min_periods=1).min()
+        return metrics_dict
+
+    def save_results(self, meta_data, filename):
+        """Save results to a CSV file."""
+        output_filename = os.path.join('history', os.path.splitext(filename)[0] + '_Output.csv')
+        meta_data.to_csv(output_filename, index=False)
+        print(f"Results saved to {output_filename}")
+
+    def print_data(self,mdict, filename):
+        print("Final Portfolio Results for %{filename}")
+
+        print(f"Initial Investment: ${mdict['initial_invest']:,.0f}")
+        print(f"Final Portfolio Value (Hold): ${mdict['portfolio_value_hold']:,.0f} (Cash: ${mdict['cash_hold']:.0f})")
+        print(f"Final Portfolio Value (Monthly): ${mdict['portfolio_value_monthly']:,.0f} (Cash: ${mdict['cash_monthly']:.0f})")
+        print(f"Final Portfolio Value (Strategy): ${mdict['portfolio_value_strategy']:,.0f} (Cash: ${mdict['cash_strategy']:.0f})")
+
+        print(f"Return (%) (Hold): {mdict['return_hold']:.2f}%")
+        print(f"Return (%) (Monthly): {mdict['return_monthly']:.2f}%")
+        print(f"Return (%) (Strategy): {mdict['return_strategy']:.2f}%")
+
+        print(f"Cash Gain (Hold): {mdict['portfolio_value_hold'] + mdict['cash_hold']:,.0f}")
+        print(f"Cash Gain (Monthly): {mdict['portfolio_value_monthly'] + mdict['cash_monthly']:,.0f}")
+        print(f"Cash Gain (Strategy): {mdict['portfolio_value_strategy'] + mdict['cash_strategy']:,.0f}")
 
 
-    cash = initial_shares * start_price*-1  # Start with no additional cash
-    portfolio = {
-        'cash': cash,
-        'shares': initial_shares,
-        'transactions': [],  # To record buy/sell actions
-    }
+    def draw_plots(self, meta_data, filename):
+        """Generate and save plots."""
+        meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
 
-    # Add a flag to indicate if we're outside the 52-week range
-    meta_data['Outside_Range'] = (
-        (meta_data['High'] > meta_data['52_Week_High']) |
-        (meta_data['Low'] < meta_data['52_Week_Low'])
-    )
+        file_root, file_ext = os.path.splitext(filename)
 
-    apply_strategy(meta_data)
-    calculate_output(meta_data)
-    print_data(meta_data)
+        # Calculate Total Values
+        meta_data['Total_Value_H'] = meta_data['Cash_H'] + meta_data['Portfolio_H'] * meta_data['Close']
+        meta_data['Total_Value_M'] = meta_data['Cash_M'] + meta_data['Portfolio_M'] * meta_data['Close']
+        meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
 
-    meta_data.to_csv(filename + "_Output.csv", index=False)
 
-    draw_plots(meta_data)
+        plt.figure(figsize=(12, 6))
+        plt.plot(meta_data['Date'], meta_data['Cash_S'], label='Cash Strategy')
+        plt.plot(meta_data['Date'], meta_data['Cash_M'], label='Cash Monthly')
+        plt.plot(meta_data['Date'], meta_data['Cash_H'], label='Cash Hold')
+        plt.title(f'{filename}: Cash Over Time')
+        plt.xlabel('Date')
+        plt.ylabel('Cash ($)')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join('plots', file_root + 'cash.png'))
+        plt.close()
+
+        plt.figure(figsize=(12, 6))
+        plt.plot(meta_data['Date'], meta_data['Total_Value_S'], label='Total Value Strategy')
+        plt.plot(meta_data['Date'], meta_data['Total_Value_H'], label='Total Value Hold')
+        plt.plot(meta_data['Date'], meta_data['Total_Value_M'], label='Total Value Monthly')
+        plt.title(f'{filename}: Total Value Over Time')
+        plt.xlabel('Date')
+        plt.ylabel('Total Value ($)')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join('plots', file_root + 'value.png'))
+        plt.close()
+
+    def run(self, file_list):
+        """Run the simulation for all files in the file list."""
+        for filename in file_list:
+            meta_data = self.load_data(filename)
+            if meta_data is None:
+                continue
+
+            meta_data = meta_data[
+                                (meta_data['Date'] >= self.start_date) & (meta_data['Date'] <= self.end_date)
+                                ].reset_index(drop=True)
+            meta_data['52_Week_High'] = meta_data['High'].shift(1).rolling(260).max()
+            meta_data['52_Week_Low'] = meta_data['Low'].shift(1).rolling(260).min()
+
+            if self.start_date in meta_data['Date'].values:
+              self.start_price = meta_data.loc[meta_data['Date'] == self.start_date, 'Close'].values[0]
+            else:
+                print(f"Start date {self.start_date} not found in meta_data.")
+                continue
+
+            meta_data['Cash_H'] = self.initial_shares * self.start_price *-1
+            meta_data['Portfolio_H'] = self.initial_shares
+            meta_data['Cash_M'] = self.initial_shares * self.start_price *-1
+            meta_data['Portfolio_M'] = self.initial_shares
+            meta_data['Cash_S'] = self.initial_shares * self.start_price *-1
+            meta_data['Portfolio_S'] = float(self.initial_shares)
+
+            self.apply_strategy(meta_data)
+            self.apply_monthly_plan(meta_data)
+            self.apply_hold_interest(meta_data)
+            metrics_dict = self.calculate_metrics(meta_data)
+            self.print_data(metrics_dict, filename)
+            self.save_results(meta_data, filename)
+            self.draw_plots(meta_data, filename)
+
+
+
+params = {
+    'sell_high': True,
+    'buy_low': True,
+    'relative_sell': 10,
+    'relative_buy': 50,
+    'cash_interest': 0.12/252
+}
+
+file_list = [
+    "AAPL-history.csv",
+    "DIS-history.csv",
+    "DUOL-history.csv",
+    "GOOG-history.csv",
+    "MSFT-history.csv",
+    "NKE-history.csv",
+    "NVDA-history.csv",
+    "RDDT-history.csv",
+    "TSLA-history.csv",
+    ]
+
+simulator = TradingStrategySimulator(initial_shares=100,
+                                    start_date="2020-01-03",
+                                    period_months = 36,
+                                    plan=1,
+                                    params=params)
+simulator.run(file_list)
