@@ -1,10 +1,6 @@
 import pandas as pd
+import os
 
-filename = "Meta_Dataset"
-#filename = "TSLA"
-#filename = "DUOL_stock_data"
-#filename = "GOOGL"
-#filename = "Apple"
 # Global variable to define monthly transaction plan for "Hold" strategy
 plan = 1  # Number of shares to buy (positive) or sell (negative) monthly
 
@@ -17,8 +13,8 @@ buy_amount = 10   # Number of shares to buy when conditions are met
 relative_transaction = True
 relative_sell = 10
 relative_buy = 50
-cash_interest = 0.12/252
-tax_rate = 0.9
+cash_interest = 0.12/252 # Assume that free money can generate up to 12% elsewhere
+tax_rate = 0.8 # 20% tax on capital gains
 
 # Initialize portfolio simulation
 initial_shares = 100
@@ -27,16 +23,18 @@ start_date = pd.to_datetime('2018-01-03')
 
 
 # Define a function to load "Meta_Dataset.csv" from the disk
-def load_meta_dataset():
+def load_meta_dataset(filename):
     """
     Load the Meta historical dataset from the same directory as the script.
 
     Returns:
         pd.DataFrame: A DataFrame containing the historical data from "Meta_Dataset.csv".
     """
+    filepath = os.path.join("history/", filename )
+    print("Loading file:", filepath)
     try:
         # Attempt to load the dataset
-        dataset = pd.read_csv(filename + ".csv")
+        dataset = pd.read_csv(filepath)
         # Convert the 'Date' column to datetime format
         dataset['Date'] = pd.to_datetime(dataset['Date'])
         # Sort the dataset by the 'Date' column in ascending order
@@ -147,7 +145,7 @@ def apply_strategy(meta_data):
         portfolio['cash'] = portfolio['cash'] + portfolio['cash'] * cash_interest
 
 
-def calculate_output(meta_data)
+def calculate_output(meta_data):
     # Calculate the final portfolio value
     final_closing_price = meta_data.iloc[-1]['Close']
     # Integrate the monthly adjustment for the "Hold" approach
@@ -168,7 +166,7 @@ def calculate_output(meta_data)
     return_monthly = (portfolio_value_monthly + cash_monthly) / (initial_shares*start_price)*100
     return_strategy = (portfolio_value_strategy + cash_strategy) / (initial_shares*start_price)*100
 
-def print_data(meta_data)
+def print_data(meta_data):
     print("Final Portfolio Results:")
 
     print(f"Initial Investment: ${initial_shares*start_price:,.0f}")
@@ -218,53 +216,67 @@ def draw_plots(meta_data):
 
 
 
-# Example usage
-# Uncomment the following line to load the dataset:
-meta_data = load_meta_dataset()
-# Convert the 'Date' column to datetime for easier filtering
-meta_data['Date'] = pd.to_datetime(meta_data['Date'])
 
-# Initialize the Cash and Portfolio columns in meta_data
-if start_date in meta_data['Date'].values:
-    start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
-else:
-    print(f"Start date {start_date} not found in meta_data.")
-    exit()
+file_list = ["AAPL-history.csv",
+"DIS-history.csv",
+"DUOL-history.csv",
+"GOOG-history.csv",
+"MSFT-history.csv",
+"NKE-history.csv",
+"NVDA-history.csv",
+"RDDT-history.csv",
+"TSLA-history.csv",]
 
-
-meta_data['Cash_H'] = initial_shares * start_price *-1
-meta_data['Portfolio_H'] = initial_shares
-meta_data['Cash_M'] = initial_shares * start_price *-1
-meta_data['Portfolio_M'] = initial_shares
-meta_data['Cash_S'] = initial_shares * start_price *-1
-meta_data['Portfolio_S'] = initial_shares
+for filename in file_list:
 
 
-# Filter data starting from start_date
-meta_data = meta_data[meta_data['Date'] >= start_date].reset_index(drop=True)
+    # Example usage
+    # Uncomment the following line to load the dataset:
+    meta_data = load_meta_dataset(filename)
+    # Convert the 'Date' column to datetime for easier filtering
+    meta_data['Date'] = pd.to_datetime(meta_data['Date'])
 
-# Calculate rolling 52-week high and low for the *previous day*
-meta_data['52_Week_High'] = meta_data['High'].shift(1).rolling(window=260, min_periods=1).max()
-meta_data['52_Week_Low'] = meta_data['Low'].shift(1).rolling(window=260, min_periods=1).min()
+    # Initialize the Cash and Portfolio columns in meta_data
+    if start_date in meta_data['Date'].values:
+        start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
+    else:
+        print(f"Start date {start_date} not found in meta_data.")
+        exit()
 
 
-cash = initial_shares * start_price*-1  # Start with no additional cash
-portfolio = {
-    'cash': cash,
-    'shares': initial_shares,
-    'transactions': [],  # To record buy/sell actions
-}
+    meta_data['Cash_H'] = initial_shares * start_price *-1
+    meta_data['Portfolio_H'] = initial_shares
+    meta_data['Cash_M'] = initial_shares * start_price *-1
+    meta_data['Portfolio_M'] = initial_shares
+    meta_data['Cash_S'] = initial_shares * start_price *-1
+    meta_data['Portfolio_S'] = initial_shares
 
-# Add a flag to indicate if we're outside the 52-week range
-meta_data['Outside_Range'] = (
-    (meta_data['High'] > meta_data['52_Week_High']) |
-    (meta_data['Low'] < meta_data['52_Week_Low'])
-)
 
-apply_strategy(meta_data)
-calculate_output(meta_data)
-print_data(meta_data)
+    # Filter data starting from start_date
+    meta_data = meta_data[meta_data['Date'] >= start_date].reset_index(drop=True)
 
-meta_data.to_csv(filename + "_Output.csv", index=False)
+    # Calculate rolling 52-week high and low for the *previous day*
+    meta_data['52_Week_High'] = meta_data['High'].shift(1).rolling(window=260, min_periods=1).max()
+    meta_data['52_Week_Low'] = meta_data['Low'].shift(1).rolling(window=260, min_periods=1).min()
 
-draw_plots(meta_data)
+
+    cash = initial_shares * start_price*-1  # Start with no additional cash
+    portfolio = {
+        'cash': cash,
+        'shares': initial_shares,
+        'transactions': [],  # To record buy/sell actions
+    }
+
+    # Add a flag to indicate if we're outside the 52-week range
+    meta_data['Outside_Range'] = (
+        (meta_data['High'] > meta_data['52_Week_High']) |
+        (meta_data['Low'] < meta_data['52_Week_Low'])
+    )
+
+    apply_strategy(meta_data)
+    calculate_output(meta_data)
+    print_data(meta_data)
+
+    meta_data.to_csv(filename + "_Output.csv", index=False)
+
+    draw_plots(meta_data)
