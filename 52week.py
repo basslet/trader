@@ -155,7 +155,7 @@ class TradingStrategySimulator:
 
     def save_results(self, meta_data, filename):
         """Save results to a CSV file."""
-        output_filename = os.path.join('history', os.path.splitext(filename)[0] + '_Output.csv')
+        output_filename = os.path.join('output', os.path.splitext(filename)[0] + '_Output.csv')
         meta_data.to_csv(output_filename, index=False)
         print(f"Results saved to {output_filename}")
 
