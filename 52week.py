@@ -4,9 +4,10 @@ import os
 
 
 class TradingStrategySimulator:
-    def __init__(self, initial_shares, start_date, period_months, plan, params):
+    def __init__(self, initial_invest, start_date, period_months, plan, params):
         """Initialize the simulator with initial parameters."""
-        self.initial_shares = initial_shares
+        self.initial_invest = initial_invest
+        self.initial_shares = 0
         self.start_date = pd.to_datetime(start_date)
         self.period_months = period_months
         self.end_date = self.start_date + pd.DateOffset(months=period_months)
@@ -69,7 +70,9 @@ class TradingStrategySimulator:
             current_year = row['Date'].year
 
             if not outside_range and (last_transaction_month != (current_year, current_month)):
-                if self.params['sell_high'] and row['High'] > row['52_Week_High']:
+                if self.params['sell_high'] \
+                    and row['High'] > row['52_Week_High'] \
+                    and portfolio['shares']*self.params['keep_minimum'] > self.initial_shares:
                     sell_amount = portfolio['shares'] * self.params['relative_sell'] / 100
                     portfolio['cash'] += sell_amount * row['High']
                     portfolio['shares'] -= sell_amount
@@ -247,6 +250,7 @@ class TradingStrategySimulator:
 
             if start_date in meta_data['Date'].values:
               self.start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
+              self.initial_shares = int(self.initial_invest/self.start_price)
             else:
                 print(f"Start date {self.start_date} not found in meta_data.")
                 continue
@@ -273,7 +277,9 @@ params = {
     'buy_low': True,
     'relative_sell': 10,
     'relative_buy': 50,
-    'cash_interest': 0.12/252
+    'cash_interest': 0.12/252,
+    'high_buy_factor': 1.05,
+    'keep_minimum': 0.5,
 }
 
 file_list = [
@@ -287,11 +293,12 @@ file_list = [
     "RDDT-history.csv",
     "TSLA-history.csv",
     "SNAP-history.csv",
+    "META-history.csv",
     ]
 
-simulator = TradingStrategySimulator(initial_shares=100,
-                                    start_date="2021-01-03",
-                                    period_months = 48,
+simulator = TradingStrategySimulator(initial_invest=10000,
+                                    start_date="2019-01-03",
+                                    period_months = 60,
                                     plan=1,
                                     params=params)
 simulator.run(file_list)
