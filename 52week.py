@@ -62,7 +62,7 @@ class TradingStrategySimulator:
 
 
     def apply_strategy(self, meta_data):
-        """Apply the trading strategy."""
+        """Apply the trading strategy with interest"""
         portfolio = {'cash': -self.initial_shares * self.start_price,
                      'shares': self.initial_shares, 'transactions': []}
         outside_range = False
@@ -100,7 +100,7 @@ class TradingStrategySimulator:
             portfolio['cash'] = portfolio['cash'] + portfolio['cash']*self.params['cash_interest']
 
     def apply_monthly_plan(self, meta_data):
-        """Apply a monthly buy/sell plan."""
+        """Apply a monthly buy/sell plan with interest """
         portfolio = {'cash': -self.initial_shares * self.start_price,
                      'shares': self.initial_shares, 'transactions': []}
 
@@ -129,7 +129,7 @@ class TradingStrategySimulator:
 
     def apply_hold_interest(self, meta_data):
         """
-
+        Apply the hold with interest
         """
         portfolio = {'cash': self.initial_shares * self.start_price*-1, 'shares': self.initial_shares, 'transactions': []}
         for idx, row in meta_data.iterrows():
