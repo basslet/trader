@@ -1,11 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
+import os, glob
 
 
 class TradingStrategySimulator:
     def __init__(self, initial_invest, start_date, period_months, plan, params):
         """Initialize the simulator with initial parameters."""
+        self.filename = None
         self.initial_invest = initial_invest
         self.initial_shares = 0
         self.start_date = pd.to_datetime(start_date)
@@ -14,9 +15,11 @@ class TradingStrategySimulator:
         self.plan = plan
         self.params = params
         self.start_price = 0
+        self.metrics_data = []
 
     def load_data(self, filename):
         """Load a CSV file and prepare it for simulation."""
+        self.filename = filename
         filepath = os.path.join("history", filename)
         print(f"Loading file: {filepath}")
         try:
@@ -71,16 +74,20 @@ class TradingStrategySimulator:
 
             if not outside_range and (last_transaction_month != (current_year, current_month)):
                 if self.params['sell_high'] \
-                    and row['High'] > row['52_Week_High'] \
+                    and row['High'] >= row['52_Week_High'] \
                     and portfolio['shares']*self.params['keep_minimum'] > self.initial_shares:
+
                     sell_amount = portfolio['shares'] * self.params['relative_sell'] / 100
-                    portfolio['cash'] += sell_amount * row['High']
+                    portfolio['cash'] += sell_amount * row['52_Week_High']
                     portfolio['shares'] -= sell_amount
                     outside_range = True
                     last_transaction_month = (current_year, current_month)
-                elif self.params['buy_low'] and row['Low'] < row['52_Week_Low']:
+                elif self.params['buy_low'] \
+                    and row['Low'] < row['52_Week_Low'] \
+                    and portfolio['cash'] > self.params['invest_cap']:
+
                     buy_amount = portfolio['shares'] * self.params['relative_buy'] / 100
-                    portfolio['cash'] -= buy_amount * row['Low']
+                    portfolio['cash'] -= buy_amount * row['52_Week_Low']
                     portfolio['shares'] += buy_amount
                     outside_range = True
                     last_transaction_month = (current_year, current_month)
@@ -137,6 +144,7 @@ class TradingStrategySimulator:
 
 
         metrics_dict = {}
+        metrics_dict['name'] = os.path.splitext(self.filename)[0]
         metrics_dict["final_closing_price"] = meta_data.iloc[-1]['Close']
         metrics_dict["initial_invest"] = self.initial_shares*self.start_price
 
@@ -153,19 +161,34 @@ class TradingStrategySimulator:
         metrics_dict['return_hold'] = (metrics_dict['portfolio_value_hold'] + metrics_dict['cash_hold']) / (self.initial_shares*self.start_price)*100
         metrics_dict['return_monthly'] = (metrics_dict['portfolio_value_monthly'] + metrics_dict['cash_monthly']) / (self.initial_shares*self.start_price)*100
         metrics_dict['return_strategy'] = (metrics_dict['portfolio_value_strategy'] + metrics_dict['cash_strategy']) / (self.initial_shares*self.start_price)*100
+        metrics_dict['max_invest'] = meta_data['Cash_S'].min()
+
 
         return metrics_dict
 
-    def save_results(self, meta_data, filename):
+    def save_results(self, meta_data):
         """Save results to a CSV file."""
-        output_filename = os.path.join('output', os.path.splitext(filename)[0] + '_Output.csv')
+        output_filename = os.path.join('output', os.path.splitext(self.filename)[0] + '_Output.csv')
         meta_data.to_csv(output_filename, index=False)
         print(f"Results saved to {output_filename}")
 
-    def print_data(self,mdict, filename):
+    def save_metrics_to_csv(self, metrics_list):
+        """Save metrics from multiple files into a single CSV."""
+        # Convert the list of dictionaries to a DataFrame
+
+        output_filename = os.path.join('./', 'Metrics.csv')
+        metrics_df = pd.DataFrame(metrics_list)
+
+        # Save to CSV
+        metrics_df.to_csv(output_filename, index=False)
+
+
+
+
+    def print_data(self,mdict):
         message = ""
 
-        message += f"Final Portfolio Results for %{filename}\n"
+        message += f"Final Portfolio Results for %{self.filename}\n"
 
         message += f"Initial Investment: ${mdict['initial_invest']:,.0f}\n"
         message += f"Final Portfolio Value (Hold): ${mdict['portfolio_value_hold']:,.0f} (Cash: ${mdict['cash_hold']:.0f})\n"
@@ -186,11 +209,11 @@ class TradingStrategySimulator:
 
 
 
-    def draw_plots(self, meta_data, filename, message):
+    def draw_plots(self, meta_data, message):
         """Generate and save plots."""
         meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
 
-        file_root, file_ext = os.path.splitext(filename)
+        file_root, file_ext = os.path.splitext(self.filename)
 
         # Calculate Total Values
         meta_data['Total_Value_H'] = meta_data['Cash_H'] + meta_data['Portfolio_H'] * meta_data['Close']
@@ -205,7 +228,7 @@ class TradingStrategySimulator:
         plt.plot(meta_data['Date'], meta_data['Cash_S'], label='Cash Strategy')
         plt.plot(meta_data['Date'], meta_data['Cash_M'], label='Cash Monthly')
         plt.plot(meta_data['Date'], meta_data['Cash_H'], label='Cash Hold')
-        plt.title(f'{filename}: Cash Over Time')
+        plt.title(f'{self.filename}: Cash Over Time')
         plt.xlabel('Date')
         plt.ylabel('Cash ($)')
         plt.legend()
@@ -225,7 +248,7 @@ class TradingStrategySimulator:
         plt.plot(meta_data['Date'], meta_data['Total_Value_S'], label='Total Value Strategy')
         plt.plot(meta_data['Date'], meta_data['Total_Value_H'], label='Total Value Hold')
         plt.plot(meta_data['Date'], meta_data['Total_Value_M'], label='Total Value Monthly')
-        plt.title(f'{filename}: Total Value Over Time')
+        plt.title(f'{self.filename}: Total Value Over Time')
         plt.xlabel('Date')
         plt.ylabel('Total Value ($)')
         plt.legend()
@@ -245,8 +268,8 @@ class TradingStrategySimulator:
             meta_data = meta_data[
                                 (meta_data['Date'] >= start_date) & (meta_data['Date'] <= end_date)
                                 ].reset_index(drop=True)
-            meta_data['52_Week_High'] = meta_data['High'].shift(1).rolling(260).max()
-            meta_data['52_Week_Low'] = meta_data['Low'].shift(1).rolling(260).min()
+            meta_data['52_Week_High'] = meta_data['High'].shift(20).rolling(260).max() * self.params['high_sell_factor']
+            meta_data['52_Week_Low'] = meta_data['Low'].shift(20).rolling(260).min()
 
             if start_date in meta_data['Date'].values:
               self.start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
@@ -266,37 +289,32 @@ class TradingStrategySimulator:
             self.apply_monthly_plan(meta_data)
             self.apply_hold_interest(meta_data)
             metrics_dict = self.calculate_metrics(meta_data)
-            message = self.print_data(metrics_dict, filename)
-            self.save_results(meta_data, filename)
-            self.draw_plots(meta_data, filename, message)
+            self.metrics_data.append(metrics_dict)
+
+            message = self.print_data(metrics_dict)
+            self.save_results(meta_data)
+            self.draw_plots(meta_data, message)
+
+        self.save_metrics_to_csv(self.metrics_data)
 
 
 
 params = {
     'sell_high': True,
     'buy_low': True,
-    'relative_sell': 10,
+    'relative_sell': 40,
     'relative_buy': 50,
     'cash_interest': 0.12/252,
-    'high_buy_factor': 1.05,
+    'high_sell_factor': 1.025, # how much above 52 week high in order to sell
     'keep_minimum': 0.5,
+    'invest_cap': -250000
 }
 
-file_list = [
-    "AAPL-history.csv",
-    "DIS-history.csv",
-    "DUOL-history.csv",
-    "GOOG-history.csv",
-    "MSFT-history.csv",
-    "NKE-history.csv",
-    "NVDA-history.csv",
-    "RDDT-history.csv",
-    "TSLA-history.csv",
-    "SNAP-history.csv",
-    "META-history.csv",
-    ]
+# Use glob to find all CSV files in the specified directory
+file_list = glob.glob(os.path.join('history', '*.csv'))
+file_list = [os.path.basename(file) for file in file_list]
 
-simulator = TradingStrategySimulator(initial_invest=10000,
+simulator = TradingStrategySimulator(initial_invest=5000,
                                     start_date="2019-01-03",
                                     period_months = 60,
                                     plan=1,
