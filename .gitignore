@@ -1,3 +1,4 @@
 .DS_Store
-~$case study.xlsx
-__pycache__/trader.cpython-311.pyc
+~$*.xlsx
+*.pyc
+
