@@ -1,0 +1,300 @@
+Loading file: ci/input/AAPL-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %AAPL-history.csv
+Initial Investment: $4,955
+Final Portfolio Value (Hold): $7,875 (Cash: $-6583)
+Final Portfolio Value (Monthly): $12,600 (Cash: $-10928)
+Final Portfolio Value (Strategy): $7,875 (Cash: $-6583)
+Return (%) (Hold): 26.07%
+Return (%) (Monthly): 33.75%
+Return (%) (Strategy): 26.07%
+Cash Gain (Hold): 1,292
+Cash Gain (Monthly): 1,672
+Cash Gain (Strategy): 1,292
+
+Results saved to ci/output/AAPL-history_Output.csv
+Loading file: ci/input/NVDA-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %NVDA-history.csv
+Initial Investment: $4,998
+Final Portfolio Value (Hold): $47,421 (Cash: $-6641)
+Final Portfolio Value (Monthly): $50,403 (Cash: $-8004)
+Final Portfolio Value (Strategy): $47,421 (Cash: $-6641)
+Return (%) (Hold): 815.94%
+Return (%) (Monthly): 848.33%
+Return (%) (Strategy): 815.94%
+Cash Gain (Hold): 40,780
+Cash Gain (Monthly): 42,399
+Cash Gain (Strategy): 40,780
+
+Results saved to ci/output/NVDA-history_Output.csv
+Loading file: ci/input/INTC-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %INTC-history.csv
+Initial Investment: $4,990
+Final Portfolio Value (Hold): $3,312 (Cash: $-6630)
+Final Portfolio Value (Monthly): $3,823 (Cash: $-7440)
+Final Portfolio Value (Strategy): $7,451 (Cash: $-10742)
+Return (%) (Hold): -66.51%
+Return (%) (Monthly): -72.50%
+Return (%) (Strategy): -65.96%
+Cash Gain (Hold): -3,319
+Cash Gain (Monthly): -3,618
+Cash Gain (Strategy): -3,291
+
+Results saved to ci/output/INTC-history_Output.csv
+Loading file: ci/input/META-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %META-history.csv
+Initial Investment: $4,878
+Final Portfolio Value (Hold): $16,068 (Cash: $-6481)
+Final Portfolio Value (Monthly): $27,704 (Cash: $-14273)
+Final Portfolio Value (Strategy): $16,068 (Cash: $-6481)
+Return (%) (Hold): 196.56%
+Return (%) (Monthly): 275.36%
+Return (%) (Strategy): 196.56%
+Cash Gain (Hold): 9,587
+Cash Gain (Monthly): 13,431
+Cash Gain (Strategy): 9,587
+
+Results saved to ci/output/META-history_Output.csv
+Loading file: ci/input/UBER-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %UBER-history.csv
+Initial Investment: $4,999
+Final Portfolio Value (Hold): $16,262 (Cash: $-6643)
+Final Portfolio Value (Monthly): $17,800 (Cash: $-7876)
+Final Portfolio Value (Strategy): $16,262 (Cash: $-6643)
+Return (%) (Hold): 192.39%
+Return (%) (Monthly): 198.50%
+Return (%) (Strategy): 192.39%
+Cash Gain (Hold): 9,619
+Cash Gain (Monthly): 9,924
+Cash Gain (Strategy): 9,619
+
+Results saved to ci/output/UBER-history_Output.csv
+Loading file: ci/input/NFLX-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %NFLX-history.csv
+Initial Investment: $4,833
+Final Portfolio Value (Hold): $21,423 (Cash: $-6422)
+Final Portfolio Value (Monthly): $38,726 (Cash: $-17325)
+Final Portfolio Value (Strategy): $21,423 (Cash: $-6422)
+Return (%) (Hold): 310.40%
+Return (%) (Monthly): 442.82%
+Return (%) (Strategy): 310.40%
+Cash Gain (Hold): 15,001
+Cash Gain (Monthly): 21,401
+Cash Gain (Strategy): 15,001
+
+Results saved to ci/output/NFLX-history_Output.csv
+Loading file: ci/input/SPOT-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %SPOT-history.csv
+Initial Investment: $4,927
+Final Portfolio Value (Hold): $21,541 (Cash: $-6547)
+Final Portfolio Value (Monthly): $31,166 (Cash: $-11265)
+Final Portfolio Value (Strategy): $21,541 (Cash: $-6547)
+Return (%) (Hold): 304.33%
+Return (%) (Monthly): 403.90%
+Return (%) (Strategy): 304.33%
+Cash Gain (Hold): 14,994
+Cash Gain (Monthly): 19,900
+Cash Gain (Strategy): 14,994
+
+Results saved to ci/output/SPOT-history_Output.csv
+Loading file: ci/input/MSFT-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %MSFT-history.csv
+Initial Investment: $4,994
+Final Portfolio Value (Hold): $7,885 (Cash: $-6636)
+Final Portfolio Value (Monthly): $16,600 (Cash: $-14861)
+Final Portfolio Value (Strategy): $7,885 (Cash: $-6636)
+Return (%) (Hold): 25.01%
+Return (%) (Monthly): 34.82%
+Return (%) (Strategy): 25.01%
+Cash Gain (Hold): 1,249
+Cash Gain (Monthly): 1,739
+Cash Gain (Strategy): 1,249
+
+Results saved to ci/output/MSFT-history_Output.csv
+Loading file: ci/input/NKE-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %NKE-history.csv
+Initial Investment: $4,903
+Final Portfolio Value (Hold): $3,603 (Cash: $-6515)
+Final Portfolio Value (Monthly): $5,213 (Cash: $-9026)
+Final Portfolio Value (Strategy): $5,405 (Cash: $-8698)
+Return (%) (Hold): -59.39%
+Return (%) (Monthly): -77.77%
+Return (%) (Strategy): -67.17%
+Cash Gain (Hold): -2,912
+Cash Gain (Monthly): -3,813
+Cash Gain (Strategy): -3,293
+
+Results saved to ci/output/NKE-history_Output.csv
+Loading file: ci/input/AMD-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %AMD-history.csv
+Initial Investment: $4,963
+Final Portfolio Value (Hold): $8,903 (Cash: $-6595)
+Final Portfolio Value (Monthly): $11,736 (Cash: $-9503)
+Final Portfolio Value (Strategy): $8,903 (Cash: $-6595)
+Return (%) (Hold): 46.52%
+Return (%) (Monthly): 44.99%
+Return (%) (Strategy): 46.52%
+Cash Gain (Hold): 2,309
+Cash Gain (Monthly): 2,233
+Cash Gain (Strategy): 2,309
+
+Results saved to ci/output/AMD-history_Output.csv
+Loading file: ci/input/DUOL-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %DUOL-history.csv
+Initial Investment: $4,962
+Final Portfolio Value (Hold): $15,366 (Cash: $-6594)
+Final Portfolio Value (Monthly): $21,820 (Cash: $-10485)
+Final Portfolio Value (Strategy): $15,366 (Cash: $-6594)
+Return (%) (Hold): 176.77%
+Return (%) (Monthly): 228.42%
+Return (%) (Strategy): 176.77%
+Cash Gain (Hold): 8,772
+Cash Gain (Monthly): 11,335
+Cash Gain (Strategy): 8,772
+
+Results saved to ci/output/DUOL-history_Output.csv
+Loading file: ci/input/SNAP-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %SNAP-history.csv
+Initial Investment: $4,990
+Final Portfolio Value (Hold): $3,678 (Cash: $-6630)
+Final Portfolio Value (Monthly): $3,901 (Cash: $-6911)
+Final Portfolio Value (Strategy): $3,678 (Cash: $-6630)
+Return (%) (Hold): -59.16%
+Return (%) (Monthly): -60.33%
+Return (%) (Strategy): -59.16%
+Cash Gain (Hold): -2,952
+Cash Gain (Monthly): -3,010
+Cash Gain (Strategy): -2,952
+
+Results saved to ci/output/SNAP-history_Output.csv
+Loading file: ci/input/GOOG-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %GOOG-history.csv
+Initial Investment: $4,897
+Final Portfolio Value (Hold): $7,477 (Cash: $-6507)
+Final Portfolio Value (Monthly): $11,129 (Cash: $-9705)
+Final Portfolio Value (Strategy): $7,477 (Cash: $-6507)
+Return (%) (Hold): 19.81%
+Return (%) (Monthly): 29.08%
+Return (%) (Strategy): 19.81%
+Cash Gain (Hold): 970
+Cash Gain (Monthly): 1,424
+Cash Gain (Strategy): 970
+
+Results saved to ci/output/GOOG-history_Output.csv
+Loading file: ci/input/MHVYF-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %MHVYF-history.csv
+Initial Investment: $4,999
+Final Portfolio Value (Hold): $21,848 (Cash: $-6643)
+Final Portfolio Value (Monthly): $22,170 (Cash: $-6804)
+Final Portfolio Value (Strategy): $21,848 (Cash: $-6643)
+Return (%) (Hold): 304.15%
+Return (%) (Monthly): 307.35%
+Return (%) (Strategy): 304.15%
+Cash Gain (Hold): 15,206
+Cash Gain (Monthly): 15,366
+Cash Gain (Strategy): 15,206
+
+Results saved to ci/output/MHVYF-history_Output.csv
+Loading file: ci/input/LLY-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %LLY-history.csv
+Initial Investment: $4,908
+Final Portfolio Value (Hold): $11,193 (Cash: $-6521)
+Final Portfolio Value (Monthly): $26,863 (Cash: $-20057)
+Final Portfolio Value (Strategy): $11,193 (Cash: $-6521)
+Return (%) (Hold): 95.20%
+Return (%) (Monthly): 138.68%
+Return (%) (Strategy): 95.20%
+Cash Gain (Hold): 4,672
+Cash Gain (Monthly): 6,806
+Cash Gain (Strategy): 4,672
+
+Results saved to ci/output/LLY-history_Output.csv
+Loading file: ci/input/TSLA-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %TSLA-history.csv
+Initial Investment: $4,894
+Final Portfolio Value (Hold): $6,735 (Cash: $-6503)
+Final Portfolio Value (Monthly): $13,470 (Cash: $-11979)
+Final Portfolio Value (Strategy): $10,103 (Cash: $-8219)
+Return (%) (Hold): 4.74%
+Return (%) (Monthly): 30.47%
+Return (%) (Strategy): 38.48%
+Cash Gain (Hold): 232
+Cash Gain (Monthly): 1,491
+Cash Gain (Strategy): 1,884
+
+Results saved to ci/output/TSLA-history_Output.csv
+Loading file: ci/input/DIS-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %DIS-history.csv
+Initial Investment: $4,956
+Final Portfolio Value (Hold): $5,869 (Cash: $-6585)
+Final Portfolio Value (Monthly): $8,286 (Cash: $-9011)
+Final Portfolio Value (Strategy): $13,866 (Cash: $-11652)
+Return (%) (Hold): -14.45%
+Return (%) (Monthly): -14.63%
+Return (%) (Strategy): 44.67%
+Cash Gain (Hold): -716
+Cash Gain (Monthly): -725
+Cash Gain (Strategy): 2,214
+
+Results saved to ci/output/DIS-history_Output.csv
+Loading file: ci/input/RDDT-history.csv
+## Updated start_date to 2024-03-22 00:00:00
+Final Portfolio Results for %RDDT-history.csv
+Initial Investment: $4,968
+Final Portfolio Value (Hold): $13,476 (Cash: $-5374)
+Final Portfolio Value (Monthly): $14,225 (Cash: $-5815)
+Final Portfolio Value (Strategy): $13,476 (Cash: $-5374)
+Return (%) (Hold): 163.09%
+Return (%) (Monthly): 169.29%
+Return (%) (Strategy): 163.09%
+Cash Gain (Hold): 8,102
+Cash Gain (Monthly): 8,410
+Cash Gain (Strategy): 8,102
+
+Results saved to ci/output/RDDT-history_Output.csv
+Loading file: ci/input/SBUX-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %SBUX-history.csv
+Initial Investment: $4,930
+Final Portfolio Value (Hold): $6,102 (Cash: $-6551)
+Final Portfolio Value (Monthly): $8,169 (Cash: $-8841)
+Final Portfolio Value (Strategy): $13,730 (Cash: $-13012)
+Return (%) (Hold): -9.10%
+Return (%) (Monthly): -13.64%
+Return (%) (Strategy): 14.55%
+Cash Gain (Hold): -449
+Cash Gain (Monthly): -672
+Cash Gain (Strategy): 717
+
+Results saved to ci/output/SBUX-history_Output.csv
+Loading file: ci/input/ABNB-history.csv
+## Updated start_date to 2022-07-05 00:00:00
+Final Portfolio Results for %ABNB-history.csv
+Initial Investment: $4,989
+Final Portfolio Value (Hold): $6,890 (Cash: $-6629)
+Final Portfolio Value (Monthly): $9,672 (Cash: $-9754)
+Final Portfolio Value (Strategy): $10,335 (Cash: $-9674)
+Return (%) (Hold): 5.23%
+Return (%) (Monthly): -1.62%
+Return (%) (Strategy): 13.25%
+Cash Gain (Hold): 261
+Cash Gain (Monthly): -81
+Cash Gain (Strategy): 661
+
+Results saved to ci/output/ABNB-history_Output.csv

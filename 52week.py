@@ -4,25 +4,30 @@ import os, glob
 
 
 class TradingStrategySimulator:
-    def __init__(self, initial_invest, start_date, period_months, plan, params):
+    def __init__(self, initial_invest, start_date, period_months, plan, source_dir, output_dir, params):
         """Initialize the simulator with initial parameters."""
+        # files
         self.filename = None
+        self.source_dir = source_dir
+        self.output_dir = output_dir
+        # portfolio
         self.initial_invest = initial_invest
         self.initial_shares = 0
         self.start_date = pd.to_datetime(start_date)
         self.period_months = period_months
         self.end_date = self.start_date + pd.DateOffset(months=period_months)
         self.plan = plan
+        # parameter
         self.params = params
         self.start_price = 0
+        # output data
         self.metrics_data = []
-
         self.total_cash = {}
 
     def load_data(self, filename):
         """Load a CSV file and prepare it for simulation."""
         self.filename = filename
-        filepath = os.path.join("history", filename)
+        filepath = os.path.join(self.source_dir, filename)
         print(f"Loading file: {filepath}")
         try:
             data = pd.read_csv(filepath)
@@ -201,7 +206,7 @@ class TradingStrategySimulator:
 
     def save_results(self, meta_data):
         """Save results to a CSV file."""
-        output_filename = os.path.join('output', os.path.splitext(self.filename)[0] + '_Output.csv')
+        output_filename = os.path.join(self.output_dir, os.path.splitext(self.filename)[0] + '_Output.csv')
         meta_data.to_csv(output_filename, index=False)
         print(f"Results saved to {output_filename}")
 
@@ -209,12 +214,12 @@ class TradingStrategySimulator:
         """Save metrics from multiple files into a single CSV."""
         # Convert the list of dictionaries to a DataFrame
 
-        output_filename = os.path.join('./', 'Metrics.csv')
+        output_filename = os.path.join(self.output_dir, '_metrics.csv')
         metrics_df = pd.DataFrame(metrics_list)
         # Save to CSV
         metrics_df.to_csv(output_filename, index=False)
 
-        output_filename = os.path.join('./', 'cashflow.csv')
+        output_filename = os.path.join(self.output_dir, '_cashflow.csv')
         df = pd.DataFrame(list(self.total_cash.items()), columns=['Date', 'Value'])
         # Save to CSV
         df.to_csv(output_filename, index=False)
@@ -276,7 +281,7 @@ class TradingStrategySimulator:
         )
 
         plt.grid(True)
-        plt.savefig(os.path.join('plots', file_root + 'cash.png'))
+        plt.savefig(os.path.join(self.output_dir,'_plots', file_root + 'cash.png'))
         plt.close()
 
         plt.figure(figsize=(20, 12))
@@ -288,7 +293,7 @@ class TradingStrategySimulator:
         plt.ylabel('Total Value ($)')
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join('plots', file_root + 'value.png'))
+        plt.savefig(os.path.join(self.output_dir,'_plots', file_root + 'value.png'))
         plt.close()
 
     def run(self, file_list):
@@ -352,13 +357,28 @@ params = {
     'hi_lo_weeks': 52
 }
 
+
+ci_test = True
+
+source_dir = "history"
+output_dir = "output"
+
+
+if ci_test:
+    source_dir = "ci/input"
+    output_dir = "ci/output"
+    plot_dir = "ci/plots"
+
+
 # Use glob to find all CSV files in the specified directory
-file_list = glob.glob(os.path.join('history', '*.csv'))
+file_list = glob.glob(os.path.join(source_dir, '*.csv'))
 file_list = [os.path.basename(file) for file in file_list]
 
 simulator = TradingStrategySimulator(initial_invest=5000,
                                     start_date="2022-07-03",
                                     period_months = 60,
                                     plan=1,
+                                    source_dir = source_dir,
+                                    output_dir = output_dir,
                                     params=params)
 simulator.run(file_list)
