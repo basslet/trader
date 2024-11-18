@@ -226,6 +226,9 @@ class TradingStrategySimulator:
 
 
     def print_data(self,mdict):
+
+        if self.params['verbose'] == False: return
+
         message = ""
 
         message += f"Final Portfolio Results for %{self.filename}\n"
@@ -247,6 +250,49 @@ class TradingStrategySimulator:
         print(message)  # Optionally print the final message if needed
         return message
 
+    def summarize_metrics(self, metrics_list):
+        """
+        Summarize metrics from a list of dictionaries, calculate ratios, and print the results.
+
+        Args:
+            metrics_list (list): A list of dictionaries containing portfolio metrics.
+        """
+        # Initialize sums for the desired metrics
+        total_return_hold = 0
+        total_return_strategy = 0
+        total_portfolio_value_hold = 0
+        total_cash_hold = 0
+        total_portfolio_value_strategy = 0
+        total_cash_strategy = 0
+
+        # Loop through each metrics dictionary and sum the values
+        for metrics in metrics_list:
+            total_return_hold += metrics['return_hold']
+            total_return_strategy += metrics['return_strategy']
+            total_portfolio_value_hold += metrics['portfolio_value_hold']
+            total_cash_hold += metrics['cash_hold']
+            total_portfolio_value_strategy += metrics['portfolio_value_strategy']
+            total_cash_strategy += metrics['cash_strategy']
+
+        # Calculate A, B, C, and D
+        A = total_return_hold
+        B = total_return_strategy
+        C = total_portfolio_value_hold + total_cash_hold
+        D = total_portfolio_value_strategy + total_cash_strategy
+
+        # Calculate ratios
+        ratio_B_to_A = B / A * 100 if A != 0 else None
+        ratio_D_to_C = D / C * 100 if C != 0 else None
+
+        # Print the results
+        print("Summary of Metrics:")
+        print(f"Date: {self.start_date} - Range: {self.period_months:.0f}")
+        print(f"Total Return Hold (A): {A:.0f}")
+        print(f"Total Return Strategy (B): {B:.0f}")
+        print(f"Combined Portfolio + Cash (Hold) (C): ${C:,.0f}")
+        print(f"Combined Portfolio + Cash (Strategy) (D): ${D:,.0f}")
+        print(f"Ratio B:A (Returns Strategy to Hold): {ratio_B_to_A:.1f}%" if ratio_B_to_A is not None else "Ratio B:A: Undefined (Division by Zero)")
+        print(f"Ratio D:C (Total Strategy to Hold): {ratio_D_to_C:.1f}%" if ratio_D_to_C is not None else "Ratio D:C: Undefined (Division by Zero)")
 
 
     def draw_plots(self, meta_data, message):
@@ -341,4 +387,5 @@ class TradingStrategySimulator:
             self.draw_plots(meta_data, message)
 
         self.save_metrics_to_csv(self.metrics_data)
+        self.summarize_metrics(self.metrics_data)
 

@@ -17,6 +17,7 @@ params = {
     'invest_cap': -250000,
     'total_cap': -500000,
     'hi_lo_weeks': 52,
+    'verbose': False,
 }
 
 
