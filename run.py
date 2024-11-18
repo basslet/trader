@@ -12,7 +12,7 @@ params = {
     'relative_buy': 50,
     'cash_interest': 0.12/252,
     'high_sell_factor': 1.015, # how much above 52 week high in order to sell
-    'low_sell_factor': 1, # how much below 52 week low in order to sell
+    'low_sell_factor': 0.96, # how much below 52 week low in order to sell
     'keep_minimum': 0.5,
     'invest_cap': -250000,
     'total_cap': -500000,

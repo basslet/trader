@@ -10,6 +10,7 @@ class TradingStrategySimulator:
         self.filename = None
         self.source_dir = source_dir
         self.output_dir = output_dir
+        self.create_plots = True
         # portfolio
         self.initial_invest = initial_invest
         self.initial_shares = 0
@@ -28,7 +29,7 @@ class TradingStrategySimulator:
         """Load a CSV file and prepare it for simulation."""
         self.filename = filename
         filepath = os.path.join(self.source_dir, filename)
-        print(f"Loading file: {filepath}")
+        if self.params['verbose']: print(f"Loading file: {filepath}")
         try:
             data = pd.read_csv(filepath)
             data['Date'] = pd.to_datetime(data['Date'])
@@ -208,7 +209,7 @@ class TradingStrategySimulator:
         """Save results to a CSV file."""
         output_filename = os.path.join(self.output_dir, os.path.splitext(self.filename)[0] + '_Output.csv')
         meta_data.to_csv(output_filename, index=False)
-        print(f"Results saved to {output_filename}")
+        if self.params['verbose']: print(f"Results saved to {output_filename}")
 
     def save_metrics_to_csv(self, metrics_list):
         """Save metrics from multiple files into a single CSV."""
@@ -287,6 +288,7 @@ class TradingStrategySimulator:
         # Print the results
         print("Summary of Metrics:")
         print(f"Date: {self.start_date} - Range: {self.period_months:.0f}")
+        print(f"Weeks: {self.params['hi_lo_weeks']} - Low Factor: {self.params['low_sell_factor']*100-100:.0f}% - High Factor: {self.params['high_sell_factor']*100-100:.1f}%")
         print(f"Total Return Hold (A): {A:.0f}")
         print(f"Total Return Strategy (B): {B:.0f}")
         print(f"Combined Portfolio + Cash (Hold) (C): ${C:,.0f}")
@@ -297,6 +299,9 @@ class TradingStrategySimulator:
 
     def draw_plots(self, meta_data, message):
         """Generate and save plots."""
+
+        if self.create_plots == False: return
+
         meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
 
         file_root, file_ext = os.path.splitext(self.filename)
@@ -344,6 +349,7 @@ class TradingStrategySimulator:
 
     def run(self, file_list):
         """Run the simulation for all files in the file list."""
+        results = []
         for filename in file_list:
             meta_data = self.load_data(filename)
             if meta_data is None:
@@ -386,6 +392,10 @@ class TradingStrategySimulator:
             self.save_results(meta_data)
             self.draw_plots(meta_data, message)
 
+            metrics_dict['start_date'] = self.start_date
+            metrics_dict['low_sell_factor'] = self.params['low_sell_factor']
+            results.append(metrics_dict)
+
         self.save_metrics_to_csv(self.metrics_data)
         self.summarize_metrics(self.metrics_data)
-
+        return results
