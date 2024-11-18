@@ -251,7 +251,7 @@ class TradingStrategySimulator:
         print(message)  # Optionally print the final message if needed
         return message
 
-    def summarize_metrics(self, metrics_list):
+    def summarize_metrics(self, metrics_list, metrics_dict):
         """
         Summarize metrics from a list of dictionaries, calculate ratios, and print the results.
 
@@ -265,6 +265,7 @@ class TradingStrategySimulator:
         total_cash_hold = 0
         total_portfolio_value_strategy = 0
         total_cash_strategy = 0
+        total_invest = 0
 
         # Loop through each metrics dictionary and sum the values
         for metrics in metrics_list:
@@ -274,6 +275,7 @@ class TradingStrategySimulator:
             total_cash_hold += metrics['cash_hold']
             total_portfolio_value_strategy += metrics['portfolio_value_strategy']
             total_cash_strategy += metrics['cash_strategy']
+            total_invest += metrics['max_invest']
 
         # Calculate A, B, C, and D
         A = total_return_hold
@@ -297,6 +299,29 @@ class TradingStrategySimulator:
         print(f"Ratio D:C (Total Strategy to Hold): {ratio_D_to_C:.1f}%" if ratio_D_to_C is not None else "Ratio D:C: Undefined (Division by Zero)")
 
 
+        metrics_dict['name'] = f"SUM {self.start_date} - {self.period_months}"
+        metrics_dict["final_closing_price"] = ratio_D_to_C
+        metrics_dict["initial_invest"] = f"{self.params['low_sell_factor']*100-100:.2f}%"
+
+        metrics_dict["portfolio_value_hold"] = total_portfolio_value_hold
+        metrics_dict["portfolio_value_monthly"] = ""
+        metrics_dict["portfolio_value_strategy"] = total_portfolio_value_strategy
+
+        metrics_dict["cash_hold"] = total_cash_hold
+        metrics_dict["cash_monthly"] = ""
+        metrics_dict["cash_strategy"] = total_cash_strategy
+
+
+        # Calculate returns
+        metrics_dict['return_hold'] = total_return_hold
+        metrics_dict['return_monthly'] = ""
+        metrics_dict['return_strategy'] = total_return_strategy
+        metrics_dict['max_invest'] = total_invest
+
+        return metrics_dict
+
+
+
     def draw_plots(self, meta_data, message):
         """Generate and save plots."""
 
@@ -310,10 +335,6 @@ class TradingStrategySimulator:
         meta_data['Total_Value_H'] = meta_data['Cash_H'] + meta_data['Portfolio_H'] * meta_data['Close']
         meta_data['Total_Value_M'] = meta_data['Cash_M'] + meta_data['Portfolio_M'] * meta_data['Close']
         meta_data['Total_Value_S'] = meta_data['Cash_S'] + meta_data['Portfolio_S'] * meta_data['Close']
-
-        # Get the maximum cash value for Cash_S
-        max_cash = meta_data['Cash_S'].max()
-        max_date = meta_data.loc[meta_data['Cash_S'].idxmax(), 'Date']  # Corresponding date
 
         plt.figure(figsize=(20, 12))
         plt.plot(meta_data['Date'], meta_data['Cash_H'], label='Cash Hold')
@@ -397,5 +418,5 @@ class TradingStrategySimulator:
             results.append(metrics_dict)
 
         self.save_metrics_to_csv(self.metrics_data)
-        self.summarize_metrics(self.metrics_data)
+        results.append(self.summarize_metrics(self.metrics_data, metrics_dict))
         return results
