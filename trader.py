@@ -314,7 +314,7 @@ class TradingStrategySimulator:
             weeks_as_days = self.params["hi_lo_weeks"]*5
 
             meta_data[week_high_str] = meta_data['High'].shift(20).rolling(weeks_as_days).max() * self.params['high_sell_factor']
-            meta_data[week_low_str] = meta_data['Low'].shift(20).rolling(weeks_as_days).min()
+            meta_data[week_low_str] = meta_data['Low'].shift(20).rolling(weeks_as_days).min() * self.params['low_sell_factor']
 
             if start_date in meta_data['Date'].values:
               self.start_price = meta_data.loc[meta_data['Date'] == start_date, 'Close'].values[0]
